@@ -1,5 +1,5 @@
 /*
- *   
+ *
  * MIT License
  *
  * Copyright (c) 2020 TerraForged
@@ -28,9 +28,9 @@ package com.terraforged.feature.template.feature;
 import com.google.common.collect.ImmutableMap;
 import com.mojang.datafixers.Dynamic;
 import com.mojang.datafixers.types.DynamicOps;
-import net.minecraft.world.gen.feature.NoFeatureConfig;
+import net.minecraft.world.gen.feature.DefaultFeatureConfig;
 
-public class TemplateFeatureConfig extends NoFeatureConfig {
+public class TemplateFeatureConfig extends DefaultFeatureConfig {
 
     public static final TemplateFeatureConfig DEFAULT = new TemplateFeatureConfig(false, false, 0);
 

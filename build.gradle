@@ -1,15 +1,14 @@
 buildscript {
     repositories {
-        maven { url "https://files.minecraftforge.net/maven" }
+        maven { url "https://maven.fabricmc.net/" }
         jcenter()
-        mavenCentral()
     }
     dependencies {
-        classpath group: "net.minecraftforge.gradle", name: "ForgeGradle", version: "3.+", changing: true
+        classpath "net.fabricmc:fabric-loom:0.2.7-SNAPSHOT"
     }
 }
 
-apply plugin: "net.minecraftforge.gradle"
+apply plugin: "fabric-loom"
 apply plugin: "maven-publish"
 apply plugin: "eclipse"
 
@@ -23,22 +22,21 @@ repositories {
 }
 
 dependencies {
-    minecraft "net.minecraftforge:forge:${mc_version}-${forge_version}"
-}
-
-minecraft {
-    mappings channel: mcp_channel, version: mcp_version
+    minecraft "com.mojang:minecraft:${mc_version}"
+    mappings "net.fabricmc:yarn:${mc_version}+build.${yarn_build}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
 }
 
 jar {
     manifest {
         attributes([
-                "Specification-Title"     : "FeatureManager",
-                "Specification-Vendor"    : "FeatureManager",
+                "Specification-Title"     : "FeatureManager-fabric",
+                "Specification-Vendor"    : "FeatureManager-fabric",
                 "Specification-Version"   : "1",
                 "Implementation-Title"    : project.name,
                 "Implementation-Version"  : "${version}",
-                "Implementation-Vendor"   : "FeatureManager",
+                "Implementation-Vendor"   : "FeatureManager-fabric",
                 "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }

@@ -1,5 +1,5 @@
 /*
- *   
+ *
  * MIT License
  *
  * Copyright (c) 2020 TerraForged
@@ -27,9 +27,9 @@ package com.terraforged.feature.matcher.biome;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.world.biome.Biome;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -70,18 +70,18 @@ public class BiomeMatcherParser {
     private static void collectBiomes(String biome, Collector collector) {
         if (biome.endsWith("*")) {
             biome = biome.substring(0, biome.length() - 1);
-            for (Biome b : ForgeRegistries.BIOMES) {
-                String name = b.getRegistryName() + "";
-                if (name.startsWith(biome)) {
-                    collector.add(b);
+            for (Identifier id : Registry.BIOME.getIds()) {
+                if (String.valueOf(id).startsWith(biome)) {
+                    collector.add(Registry.BIOME.get(id));
                 }
             }
-        } else {
-            ResourceLocation name = new ResourceLocation(biome);
-            if (ForgeRegistries.BIOMES.containsKey(name)) {
-                collector.add(ForgeRegistries.BIOMES.getValue(name));
-            }
+            return;
         }
+        Identifier id = Identifier.tryParse(biome);
+        if (id == null) {
+            return;
+        }
+        Registry.BIOME.getOrEmpty(id).ifPresent(collector::add);
     }
 
     private static class Collector {

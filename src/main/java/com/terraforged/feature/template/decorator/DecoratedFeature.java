@@ -29,27 +29,27 @@ import com.terraforged.feature.template.type.FeatureType;
 import com.terraforged.feature.template.type.TypedFeature;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IWorld;
-import net.minecraft.world.gen.ChunkGenerator;
-import net.minecraft.world.gen.GenerationSettings;
+import net.minecraft.world.gen.chunk.ChunkGenerator;
+import net.minecraft.world.gen.chunk.ChunkGeneratorConfig;
+import net.minecraft.world.gen.feature.DefaultFeatureConfig;
 import net.minecraft.world.gen.feature.Feature;
-import net.minecraft.world.gen.feature.NoFeatureConfig;
 
 import java.util.List;
 import java.util.Random;
 import java.util.function.Function;
 
-public class DecoratedFeature<T extends Feature<NoFeatureConfig> & TypedFeature, W extends DecoratorWorld> extends Feature<NoFeatureConfig> implements TypedFeature {
+public class DecoratedFeature<T extends Feature<DefaultFeatureConfig> & TypedFeature, W extends DecoratorWorld> extends Feature<DefaultFeatureConfig>
+        implements TypedFeature {
 
     private final T feature;
     private final List<Decorator<W>> decorators;
     private final Function<IWorld, W> worldFactory;
 
     public DecoratedFeature(T feature, List<Decorator<W>> decorators, Function<IWorld, W> factory) {
-        super(NoFeatureConfig::deserialize);
+        super(DefaultFeatureConfig::deserialize);
         this.worldFactory = factory;
         this.feature = feature;
         this.decorators = decorators;
-        setRegistryName(feature.getRegistryName());
     }
 
     public T getFeature() {
@@ -70,17 +70,19 @@ public class DecoratedFeature<T extends Feature<NoFeatureConfig> & TypedFeature,
     }
 
     @Override
-    public boolean place(IWorld world, ChunkGenerator<? extends GenerationSettings> generator, Random rand, BlockPos pos, NoFeatureConfig config) {
+    public boolean generate(IWorld world, ChunkGenerator<? extends ChunkGeneratorConfig> generator, Random random, BlockPos pos,
+            DefaultFeatureConfig config) {
         W featureWorld = worldFactory.apply(world);
-        if (placeFeature(featureWorld, generator, rand, pos, config)) {
-            decorate(featureWorld, rand);
+        if (placeFeature(featureWorld, generator, random, pos, config)) {
+            decorate(featureWorld, random);
             return true;
         }
         return false;
     }
 
-    public boolean placeFeature(W world, ChunkGenerator<? extends GenerationSettings> generator, Random rand, BlockPos pos, NoFeatureConfig config) {
-        return feature.place(world, generator, rand, pos, config);
+    public boolean placeFeature(W world, ChunkGenerator<? extends ChunkGeneratorConfig> generator, Random rand, BlockPos pos,
+            DefaultFeatureConfig config) {
+        return feature.generate(world, generator, rand, pos, config);
     }
 
     public void decorate(W world, Random random) {

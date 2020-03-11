@@ -1,5 +1,5 @@
 /*
- *   
+ *
  * MIT License
  *
  * Copyright (c) 2020 TerraForged
@@ -25,9 +25,9 @@
 
 package com.terraforged.feature.predicate;
 
+import net.minecraft.world.Heightmap;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.chunk.IChunk;
-import net.minecraft.world.gen.Heightmap;
+import net.minecraft.world.chunk.Chunk;
 
 public class MinDepth implements FeaturePredicate {
 
@@ -42,7 +42,7 @@ public class MinDepth implements FeaturePredicate {
     }
 
     @Override
-    public boolean test(IChunk chunk, Biome biome) {
-        return chunk.getTopBlockY(Heightmap.Type.OCEAN_FLOOR, 8, 8) < depth;
+    public boolean test(Chunk chunk, Biome biome) {
+        return chunk.sampleHeightmap(Heightmap.Type.OCEAN_FLOOR, 8, 8) < depth;
     }
 }

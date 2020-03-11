@@ -27,35 +27,29 @@ package com.terraforged.feature.example;
 
 import com.terraforged.feature.event.FeatureModifierEvent;
 import com.terraforged.feature.matcher.feature.FeatureMatcher;
+import com.terraforged.feature.modifier.FeatureModifiers;
 import com.terraforged.feature.transformer.FeatureTransformer;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.fabricmc.api.ModInitializer;
+import net.minecraft.world.IWorld;
+import net.minecraft.world.dimension.DimensionType;
 
-@Mod("example_mod")
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
-public class FeatureManagerExample {
+public class FeatureManagerExample implements ModInitializer {
 
-    @SubscribeEvent
-    public static void init(FMLCommonSetupEvent event) {
+    @Override
+    public void onInitialize() {
         System.out.println("REGISTERING WORLD TYPE");
-        ExampleWorld.init();
+        FeatureModifierEvent.EVENT.register(FeatureManagerExample::registerFeatureModifier);
     }
 
-    @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE)
-    public static class FeatureRegistrationListener {
-
-        @SubscribeEvent
-        public static void register(FeatureModifierEvent event) {
-            if (event.getWorldType() == ExampleWorld.TYPE) {
-                System.out.println("REGISTERING TRANSFORMER");
-                event.getTransformers().add(
-                        // match any feature that uses oak_leaves & oak_log blocks (ie oak trees)
-                        FeatureMatcher.and("minecraft:oak_leaves", "minecraft:oak_log"),
-                        // replace any occurrence of "minecraft:oak_leaves" with "minecraft:gold_block"
-                        FeatureTransformer.replace("minecraft:oak_leaves", "minecraft:gold_block")
-                );
-            }
+    private static void registerFeatureModifier(IWorld world, FeatureModifiers modifiers) {
+        if (world.getDimension().getType() == DimensionType.OVERWORLD) {
+            System.out.println("REGISTERING TRANSFORMER");
+            modifiers.getTransformers().add(
+                    // match any feature that uses oak_leaves & oak_log blocks (ie oak trees)
+                    FeatureMatcher.and("minecraft:oak_leaves", "minecraft:oak_log"),
+                    // replace any occurrence of "minecraft:oak_leaves" with "minecraft:gold_block"
+                    FeatureTransformer.replace("minecraft:oak_leaves", "minecraft:gold_block")
+            );
         }
     }
 }

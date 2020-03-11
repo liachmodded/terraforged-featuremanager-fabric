@@ -28,31 +28,30 @@ package com.terraforged.feature.template.feature;
 import com.terraforged.feature.template.TemplateConfig;
 import com.terraforged.feature.template.type.FeatureType;
 import com.terraforged.feature.template.type.TypedFeature;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IWorld;
-import net.minecraft.world.gen.ChunkGenerator;
+import net.minecraft.world.gen.chunk.ChunkGenerator;
+import net.minecraft.world.gen.feature.DefaultFeatureConfig;
 import net.minecraft.world.gen.feature.Feature;
-import net.minecraft.world.gen.feature.NoFeatureConfig;
 
 import java.util.List;
 import java.util.Random;
 
-public class MultiTemplateFeature extends Feature<NoFeatureConfig> implements TypedFeature {
+public class MultiTemplateFeature extends Feature<DefaultFeatureConfig> implements TypedFeature {
 
     private final int baseDepth;
 
     private final FeatureType type;
-    private final ResourceLocation name;
+    private final Identifier name;
     private final List<TemplateFeature> templates;
 
     public MultiTemplateFeature(TemplateConfig config, List<TemplateFeature> templates) {
-        super(NoFeatureConfig::deserialize);
+        super(DefaultFeatureConfig::deserialize);
         this.type = config.getType();
         this.name = config.getRegistryName();
         this.baseDepth = config.getBaseDepth();
         this.templates = templates;
-        this.setRegistryName(name);
     }
 
     @Override
@@ -61,12 +60,12 @@ public class MultiTemplateFeature extends Feature<NoFeatureConfig> implements Ty
     }
 
     @Override
-    public boolean place(IWorld world, ChunkGenerator<?> generator, Random rand, BlockPos pos, NoFeatureConfig config) {
+    public boolean generate(IWorld world, ChunkGenerator<?> generator, Random rand, BlockPos pos, DefaultFeatureConfig config) {
         if (getType().getPlacement().canPlaceAt(world, pos)) {
             if (templates.size() > 0) {
                 Feature<TemplateFeatureConfig> feature = next(rand);
                 TemplateFeatureConfig cfg = new TemplateFeatureConfig(false, false, baseDepth);
-                return feature.place(world, generator, rand, pos, cfg);
+                return feature.generate(world, generator, rand, pos, cfg);
             }
         }
         return false;
@@ -74,10 +73,18 @@ public class MultiTemplateFeature extends Feature<NoFeatureConfig> implements Ty
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         MultiTemplateFeature that = (MultiTemplateFeature) o;
         return name.equals(that.name);
+    }
+
+    public Identifier getName() {
+        return name;
     }
 
     @Override

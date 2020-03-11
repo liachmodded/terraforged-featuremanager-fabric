@@ -30,13 +30,11 @@ import com.terraforged.feature.biome.BiomeFeatures;
 import com.terraforged.feature.modifier.FeatureModifierLoader;
 import com.terraforged.feature.modifier.FeatureModifiers;
 import com.terraforged.feature.template.TemplateManager;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.gen.GenerationStage;
+import net.minecraft.world.gen.GenerationStep;
 import net.minecraft.world.gen.feature.ConfiguredFeature;
-import net.minecraft.world.gen.feature.Feature;
-import net.minecraftforge.event.RegistryEvent;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Marker;
@@ -81,7 +79,7 @@ public class FeatureManager implements FeatureDecorator {
 
         LOG.debug(INIT, " Compiling biome feature lists");
         Map<Biome, BiomeFeatures> biomes = new HashMap<>();
-        for (Biome biome : ForgeRegistries.BIOMES) {
+        for (Biome biome : Registry.BIOME) {
             BiomeFeatures features = compute(biome, modifiers);
             biomes.put(biome, features);
         }
@@ -90,14 +88,14 @@ public class FeatureManager implements FeatureDecorator {
         return new FeatureManager(biomes);
     }
 
-    public static void registerTemplates(RegistryEvent.Register<Feature<?>> event) {
-        TemplateManager.register(event);
+    public static void registerTemplates() {
+        TemplateManager.register();
     }
 
     private static BiomeFeatures compute(Biome biome, FeatureModifiers modifiers) {
         BiomeFeatures.Builder builder = BiomeFeatures.builder();
-        for (GenerationStage.Decoration stage : GenerationStage.Decoration.values()) {
-            for (ConfiguredFeature<?, ?> feature : biome.getFeatures(stage)) {
+        for (GenerationStep.Feature stage : GenerationStep.Feature.values()) {
+            for (ConfiguredFeature<?, ?> feature : biome.getFeaturesForStep(stage)) {
                 BiomeFeature biomeFeature = modifiers.getFeature(biome, feature);
                 builder.add(stage, biomeFeature);
             }

@@ -27,12 +27,13 @@ package com.terraforged.feature.data;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import net.minecraft.resources.IResource;
-import net.minecraft.resources.IResourceManager;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.resource.Resource;
+import net.minecraft.resource.ResourceManager;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.fml.LogicalSidedProvider;
+import net.minecraft.util.Identifier;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -48,15 +49,13 @@ public class DataHelper {
     public static final Predicate<String> NBT = s -> s.endsWith(".nbt");
     public static final Predicate<String> JSON = s -> s.endsWith(".json");
 
-    private static final Supplier<IResourceManager> resourceManager = () -> {
-        MinecraftServer server = LogicalSidedProvider.INSTANCE.get(LogicalSide.SERVER);
-        return server.getResourceManager();
-    };
+    private static final Supplier<MinecraftServer> serverGetter = FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT ?
+            DataHelper::serverOnClient : DataHelper::serverOnDedicatedServer;
 
     public static void iterateData(String path, ResourceVisitor<InputStream> consumer) {
-        IResourceManager manager = getResourceManager();
-        for (ResourceLocation location : manager.getAllResourceLocations(path, JSON)) {
-            try (IResource resource = manager.getResource(location)) {
+        ResourceManager manager = getResourceManager();
+        for (Identifier location : manager.findResources(path, JSON)) {
+            try (Resource resource = manager.getResource(location)) {
                 consumer.accept(location, resource.getInputStream());
             } catch (IOException e) {
                 e.printStackTrace();
@@ -65,10 +64,10 @@ public class DataHelper {
     }
 
     public static void iterateJson(String path, ResourceVisitor<JsonElement> consumer) {
-        IResourceManager manager = getResourceManager();
+        ResourceManager manager = getResourceManager();
         JsonParser parser = new JsonParser();
-        for (ResourceLocation location : manager.getAllResourceLocations(path, JSON)) {
-            try (IResource resource = manager.getResource(location)) {
+        for (Identifier location : manager.findResources(path, JSON)) {
+            try (Resource resource = manager.getResource(location)) {
                 Reader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()));
                 JsonElement element = parser.parse(reader);
                 consumer.accept(location, element);
@@ -78,7 +77,15 @@ public class DataHelper {
         }
     }
 
-    public static IResourceManager getResourceManager() {
-        return resourceManager.get();
+    public static ResourceManager getResourceManager() {
+        return serverGetter.get().getDataManager();
+    }
+
+    private static MinecraftServer serverOnClient() {
+        return MinecraftClient.getInstance().getServer();
+    }
+
+    private static MinecraftServer serverOnDedicatedServer() {
+        return (MinecraftServer) FabricLoader.getInstance().getGameInstance();
     }
 }

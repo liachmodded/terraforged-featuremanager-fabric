@@ -1,5 +1,5 @@
 /*
- *   
+ *
  * MIT License
  *
  * Copyright (c) 2020 TerraForged
@@ -26,7 +26,7 @@
 package com.terraforged.feature.template.decorator.tree;
 
 import com.terraforged.feature.template.decorator.Decorator;
-import net.minecraft.world.gen.treedecorator.TreeDecorator;
+import net.minecraft.world.gen.decorator.TreeDecorator;
 
 import java.util.Random;
 
@@ -40,7 +40,7 @@ public class TreeFeatureDecorator implements Decorator<TreeBuffer> {
 
     @Override
     public void apply(TreeBuffer world, Random random) {
-        decorator.func_225576_a_(
+        decorator.generate(
                 world.getDelegate(),
                 random,
                 world.getLogs(),

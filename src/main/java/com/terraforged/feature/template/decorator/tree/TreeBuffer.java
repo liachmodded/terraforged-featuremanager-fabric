@@ -28,7 +28,7 @@ package com.terraforged.feature.template.decorator.tree;
 import com.terraforged.feature.template.decorator.BoundsRecorder;
 import com.terraforged.feature.template.decorator.DecoratorWorld;
 import net.minecraft.block.BlockState;
-import net.minecraft.tags.BlockTags;
+import net.minecraft.tag.BlockTags;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.IWorld;

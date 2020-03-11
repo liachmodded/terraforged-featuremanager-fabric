@@ -1,17 +1,17 @@
 package com.terraforged.feature.util;
 
 import com.mojang.datafixers.types.JsonOps;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.world.gen.decorator.ConfiguredDecorator;
 import net.minecraft.world.gen.feature.ConfiguredFeature;
-import net.minecraft.world.gen.feature.ConfiguredRandomFeatureList;
 import net.minecraft.world.gen.feature.DecoratedFeatureConfig;
 import net.minecraft.world.gen.feature.Feature;
-import net.minecraft.world.gen.feature.IFeatureConfig;
-import net.minecraft.world.gen.feature.MultipleRandomFeatureConfig;
-import net.minecraft.world.gen.feature.MultipleWithChanceRandomFeatureConfig;
-import net.minecraft.world.gen.feature.SingleRandomFeature;
-import net.minecraft.world.gen.feature.TwoFeatureChoiceConfig;
-import net.minecraft.world.gen.placement.ConfiguredPlacement;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.world.gen.feature.FeatureConfig;
+import net.minecraft.world.gen.feature.RandomBooleanFeatureConfig;
+import net.minecraft.world.gen.feature.RandomFeatureConfig;
+import net.minecraft.world.gen.feature.RandomFeatureEntry;
+import net.minecraft.world.gen.feature.RandomRandomFeatureConfig;
+import net.minecraft.world.gen.feature.SimpleRandomFeatureConfig;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,24 +30,23 @@ public class FeatureDebugger {
             return;
         }
 
-        // note SingleRandomFeature & SingleRandomFeatureConfig names a mixed up
-        if (feature.config instanceof SingleRandomFeature) {
-            single((SingleRandomFeature) feature.config, errors);
+        if (feature.config instanceof SimpleRandomFeatureConfig) {
+            single((SimpleRandomFeatureConfig) feature.config, errors);
             return;
         }
 
-        if (feature.config instanceof TwoFeatureChoiceConfig) {
-            twoChoice((TwoFeatureChoiceConfig) feature.config, errors);
+        if (feature.config instanceof RandomBooleanFeatureConfig) {
+            twoChoice((RandomBooleanFeatureConfig) feature.config, errors);
             return;
         }
 
-        if (feature.config instanceof MultipleRandomFeatureConfig) {
-            multi((MultipleRandomFeatureConfig) feature.config, errors);
+        if (feature.config instanceof RandomFeatureConfig) {
+            multi((RandomFeatureConfig) feature.config, errors);
             return;
         }
 
-        if (feature.config instanceof MultipleWithChanceRandomFeatureConfig) {
-            multiChance((MultipleWithChanceRandomFeatureConfig) feature.config, errors);
+        if (feature.config instanceof RandomRandomFeatureConfig) {
+            multiChance((RandomRandomFeatureConfig) feature.config, errors);
             return;
         }
 
@@ -60,24 +59,24 @@ public class FeatureDebugger {
         checkDecorator(config.decorator, errors);
     }
 
-    private static void single(SingleRandomFeature config, List<String> errors) {
+    private static void single(SimpleRandomFeatureConfig config, List<String> errors) {
         for (ConfiguredFeature<?, ?> feature : config.features) {
             checkConfiguredFeature(feature, errors);
         }
     }
 
-    private static void twoChoice(TwoFeatureChoiceConfig config, List<String> errors) {
-        checkConfiguredFeature(config.field_227285_a_, errors);
-        checkConfiguredFeature(config.field_227286_b_, errors);
+    private static void twoChoice(RandomBooleanFeatureConfig config, List<String> errors) {
+        checkConfiguredFeature(config.featureTrue, errors);
+        checkConfiguredFeature(config.featureFalse, errors);
     }
 
-    private static void multi(MultipleRandomFeatureConfig config, List<String> errors) {
-        for (ConfiguredRandomFeatureList<?> feature : config.features) {
+    private static void multi(RandomFeatureConfig config, List<String> errors) {
+        for (RandomFeatureEntry<?> feature : config.features) {
             checkConfiguredFeature(feature.feature, errors);
         }
     }
 
-    private static void multiChance(MultipleWithChanceRandomFeatureConfig config, List<String> errors) {
+    private static void multiChance(RandomRandomFeatureConfig config, List<String> errors) {
         for (ConfiguredFeature<?, ?> feature : config.features) {
             checkConfiguredFeature(feature, errors);
         }
@@ -86,12 +85,12 @@ public class FeatureDebugger {
     private static void checkFeature(Feature<?> feature, List<String> list) {
         if (feature == null) {
             list.add("null feature");
-        } else if (!ForgeRegistries.FEATURES.containsValue(feature)) {
+        } else if (Registry.FEATURE.getId(feature) == null) {
             list.add("unregistered feature: " + feature.getClass().getName());
         }
     }
 
-    private static void checkConfig(IFeatureConfig config, List<String> list) {
+    private static void checkConfig(FeatureConfig config, List<String> list) {
         if (config == null) {
             list.add("null config");
             return;
@@ -104,7 +103,7 @@ public class FeatureDebugger {
         }
     }
 
-    private static void checkDecorator(ConfiguredPlacement<?> decorator, List<String> list) {
+    private static void checkDecorator(ConfiguredDecorator<?> decorator, List<String> list) {
         if (decorator == null) {
             list.add("null configured placement");
             return;
@@ -112,7 +111,7 @@ public class FeatureDebugger {
 
         if (decorator.decorator == null) {
             list.add("null placement");
-        } else if (!ForgeRegistries.DECORATORS.containsValue(decorator.decorator)) {
+        } else if (Registry.DECORATOR.getId(decorator.decorator) == null) {
             list.add("unregistered placement: " + decorator.decorator.getClass().getName());
         }
 

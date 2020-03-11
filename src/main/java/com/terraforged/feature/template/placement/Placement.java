@@ -1,5 +1,5 @@
 /*
- *   
+ *
  * MIT License
  *
  * Copyright (c) 2020 TerraForged
@@ -26,11 +26,11 @@
 package com.terraforged.feature.template.placement;
 
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.gen.IWorldGenerationReader;
+import net.minecraft.world.ModifiableTestableWorld;
 
 public interface Placement {
 
     Placement ANY = (r, p) -> true;
 
-    boolean canPlaceAt(IWorldGenerationReader reader, BlockPos pos);
+    boolean canPlaceAt(ModifiableTestableWorld reader, BlockPos pos);
 }

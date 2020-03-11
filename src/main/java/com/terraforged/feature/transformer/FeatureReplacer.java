@@ -27,7 +27,7 @@ package com.terraforged.feature.transformer;
 
 import net.minecraft.world.gen.feature.ConfiguredFeature;
 import net.minecraft.world.gen.feature.Feature;
-import net.minecraft.world.gen.feature.IFeatureConfig;
+import net.minecraft.world.gen.feature.FeatureConfig;
 
 import java.util.function.Supplier;
 
@@ -48,7 +48,7 @@ public class FeatureReplacer implements Supplier<ConfiguredFeature<?, ?>> {
         return new FeatureReplacer(feature);
     }
 
-    public static <T extends IFeatureConfig> FeatureReplacer of(Feature<T> feature, T config) {
-        return of(feature.func_225566_b_(config));
+    public static <T extends FeatureConfig> FeatureReplacer of(Feature<T> feature, T config) {
+        return of(feature.configure(config));
     }
 }

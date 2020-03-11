@@ -30,7 +30,7 @@ import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.terraforged.feature.template.type.FeatureType;
 import com.terraforged.feature.template.type.FeatureTypes;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.Identifier;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,8 +41,8 @@ public class TemplateConfig {
     private final String type;
     private final int extendBase;
     private final JsonElement decorators;
-    private final ResourceLocation name;
-    private final List<ResourceLocation> paths;
+    private final Identifier name;
+    private final List<Identifier> paths;
 
     private TemplateConfig(Builder builder) {
         this.type = builder.type;
@@ -64,15 +64,15 @@ public class TemplateConfig {
         return decorators;
     }
 
-    public ResourceLocation getRegistryName() {
+    public Identifier getRegistryName() {
         return name;
     }
 
-    public Iterable<ResourceLocation> getPaths() {
+    public Iterable<Identifier> getPaths() {
         return paths;
     }
 
-    public static Optional<TemplateConfig> parse(ResourceLocation location, JsonElement element) {
+    public static Optional<TemplateConfig> parse(Identifier location, JsonElement element) {
         if (!element.isJsonObject()) {
             return Optional.empty();
         }
@@ -113,9 +113,9 @@ public class TemplateConfig {
 
         private int base;
         private String type;
-        private ResourceLocation name;
+        private Identifier name;
         private JsonElement decorators = JsonNull.INSTANCE;
-        private List<ResourceLocation> paths = new ArrayList<>();
+        private List<Identifier> paths = new ArrayList<>();
 
         public Builder type(String type) {
             this.type = type;
@@ -138,7 +138,7 @@ public class TemplateConfig {
                 namespace = name.substring(0, split);
                 name = name.substring(split + 1);
             }
-            this.name = new ResourceLocation(namespace, name);
+            this.name = new Identifier(namespace, name);
             return this;
         }
 
@@ -151,7 +151,7 @@ public class TemplateConfig {
                     location = "structures/" + location;
                 }
             }
-            paths.add(new ResourceLocation(namespace, location));
+            paths.add(new Identifier(namespace, location));
             return this;
         }
 

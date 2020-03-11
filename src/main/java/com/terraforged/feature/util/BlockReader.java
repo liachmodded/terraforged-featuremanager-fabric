@@ -27,14 +27,12 @@ package com.terraforged.feature.util;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.fluid.Fluids;
-import net.minecraft.fluid.IFluidState;
-import net.minecraft.tileentity.TileEntity;
+import net.minecraft.fluid.FluidState;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockReader;
+import net.minecraft.world.BlockView;
 
-import javax.annotation.Nullable;
-
-public class BlockReader implements IBlockReader {
+public class BlockReader implements BlockView {
 
     private BlockState state;
 
@@ -43,9 +41,9 @@ public class BlockReader implements IBlockReader {
         return this;
     }
 
-    @Nullable
+    //@Nullable
     @Override
-    public TileEntity getTileEntity(BlockPos pos) {
+    public BlockEntity getBlockEntity(BlockPos pos) {
         return null;
     }
 
@@ -55,7 +53,7 @@ public class BlockReader implements IBlockReader {
     }
 
     @Override
-    public IFluidState getFluidState(BlockPos pos) {
+    public FluidState getFluidState(BlockPos pos) {
         return Fluids.EMPTY.getDefaultState();
     }
 }

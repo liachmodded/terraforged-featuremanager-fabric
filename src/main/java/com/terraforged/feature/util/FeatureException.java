@@ -27,14 +27,15 @@ package com.terraforged.feature.util;
 
 import com.google.gson.JsonElement;
 import com.mojang.datafixers.types.JsonOps;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.world.gen.feature.ConfiguredFeature;
-import net.minecraft.world.gen.feature.ConfiguredRandomFeatureList;
 import net.minecraft.world.gen.feature.DecoratedFeatureConfig;
-import net.minecraft.world.gen.feature.IFeatureConfig;
-import net.minecraft.world.gen.feature.MultipleRandomFeatureConfig;
-import net.minecraft.world.gen.feature.MultipleWithChanceRandomFeatureConfig;
-import net.minecraft.world.gen.feature.SingleRandomFeature;
-import net.minecraft.world.gen.feature.TwoFeatureChoiceConfig;
+import net.minecraft.world.gen.feature.FeatureConfig;
+import net.minecraft.world.gen.feature.RandomBooleanFeatureConfig;
+import net.minecraft.world.gen.feature.RandomFeatureConfig;
+import net.minecraft.world.gen.feature.RandomFeatureEntry;
+import net.minecraft.world.gen.feature.RandomRandomFeatureConfig;
+import net.minecraft.world.gen.feature.SimpleRandomFeatureConfig;
 
 public class FeatureException extends RuntimeException {
 
@@ -68,28 +69,28 @@ public class FeatureException extends RuntimeException {
             return;
         }
 
-        // note SingleRandomFeature & SingleRandomFeatureConfig names a mixed up
-        if (feature.config instanceof SingleRandomFeature) {
-            single((SingleRandomFeature) feature.config, sb);
+        // note SimpleRandomFeatureConfig & SimpleRandomFeatureConfigConfig names a mixed up
+        if (feature.config instanceof SimpleRandomFeatureConfig) {
+            single((SimpleRandomFeatureConfig) feature.config, sb);
             return;
         }
 
-        if (feature.config instanceof TwoFeatureChoiceConfig) {
-            twoChoice((TwoFeatureChoiceConfig) feature.config, sb);
+        if (feature.config instanceof RandomBooleanFeatureConfig) {
+            twoChoice((RandomBooleanFeatureConfig) feature.config, sb);
             return;
         }
 
-        if (feature.config instanceof MultipleRandomFeatureConfig) {
-            multi((MultipleRandomFeatureConfig) feature.config, sb);
+        if (feature.config instanceof RandomFeatureConfig) {
+            multi((RandomFeatureConfig) feature.config, sb);
             return;
         }
 
-        if (feature.config instanceof MultipleWithChanceRandomFeatureConfig) {
-            multiChance((MultipleWithChanceRandomFeatureConfig) feature.config, sb);
+        if (feature.config instanceof RandomRandomFeatureConfig) {
+            multiChance((RandomRandomFeatureConfig) feature.config, sb);
             return;
         }
 
-        sb.append(feature.feature.getRegistryName());
+        sb.append(Registry.FEATURE.getId(feature.feature));
         sb.append('(').append(config(feature.config)).append(')');
     }
 
@@ -99,7 +100,7 @@ public class FeatureException extends RuntimeException {
         sb.append("}");
     }
 
-    private static void single(SingleRandomFeature config, StringBuilder sb) {
+    private static void single(SimpleRandomFeatureConfig config, StringBuilder sb) {
         sb.append("Single[");
         for (ConfiguredFeature<?, ?> feature : config.features) {
             toString(feature, sb);
@@ -107,29 +108,29 @@ public class FeatureException extends RuntimeException {
         sb.append("]");
     }
 
-    private static void twoChoice(TwoFeatureChoiceConfig config, StringBuilder sb) {
+    private static void twoChoice(RandomBooleanFeatureConfig config, StringBuilder sb) {
         sb.append("Choice{");
         {
             sb.append("a={");
-            toString(config.field_227285_a_, sb);
+            toString(config.featureTrue, sb);
             sb.append("},b={");
-            toString(config.field_227286_b_, sb);
+            toString(config.featureFalse, sb);
             sb.append("}");
         }
         sb.append("}");
     }
 
-    private static void multi(MultipleRandomFeatureConfig config, StringBuilder sb) {
+    private static void multi(RandomFeatureConfig config, StringBuilder sb) {
         sb.append("Multi[");
         int start = sb.length();
-        for (ConfiguredRandomFeatureList<?> feature : config.features) {
+        for (RandomFeatureEntry<?> feature : config.features) {
             comma(sb, start);
             toString(feature.feature, sb);
         }
         sb.append("]");
     }
 
-    private static void multiChance(MultipleWithChanceRandomFeatureConfig config, StringBuilder sb) {
+    private static void multiChance(RandomRandomFeatureConfig config, StringBuilder sb) {
         sb.append("Chance[");
         int start = sb.length();
         for (ConfiguredFeature<?, ?> feature : config.features) {
@@ -145,7 +146,7 @@ public class FeatureException extends RuntimeException {
         }
     }
 
-    private static String config(IFeatureConfig config) {
+    private static String config(FeatureConfig config) {
         try {
             return config.serialize(JsonOps.INSTANCE).getValue().toString();
         } catch (Throwable t) {

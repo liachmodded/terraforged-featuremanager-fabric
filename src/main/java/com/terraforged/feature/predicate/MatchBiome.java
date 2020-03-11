@@ -26,7 +26,7 @@
 package com.terraforged.feature.predicate;
 
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.chunk.IChunk;
+import net.minecraft.world.chunk.Chunk;
 
 public class MatchBiome implements FeaturePredicate {
 
@@ -37,7 +37,7 @@ public class MatchBiome implements FeaturePredicate {
     }
 
     @Override
-    public boolean test(IChunk chunk, Biome biome) {
+    public boolean test(Chunk chunk, Biome biome) {
         return biome == this.biome;
     }
 }

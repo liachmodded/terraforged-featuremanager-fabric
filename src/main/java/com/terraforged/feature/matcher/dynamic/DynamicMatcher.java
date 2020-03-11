@@ -26,14 +26,14 @@
 package com.terraforged.feature.matcher.dynamic;
 
 import net.minecraft.world.gen.feature.ConfiguredFeature;
-import net.minecraft.world.gen.feature.ConfiguredRandomFeatureList;
 import net.minecraft.world.gen.feature.DecoratedFeatureConfig;
 import net.minecraft.world.gen.feature.Feature;
-import net.minecraft.world.gen.feature.IFeatureConfig;
-import net.minecraft.world.gen.feature.MultipleRandomFeatureConfig;
-import net.minecraft.world.gen.feature.MultipleWithChanceRandomFeatureConfig;
-import net.minecraft.world.gen.feature.SingleRandomFeature;
-import net.minecraft.world.gen.feature.TwoFeatureChoiceConfig;
+import net.minecraft.world.gen.feature.FeatureConfig;
+import net.minecraft.world.gen.feature.RandomBooleanFeatureConfig;
+import net.minecraft.world.gen.feature.RandomFeatureConfig;
+import net.minecraft.world.gen.feature.RandomFeatureEntry;
+import net.minecraft.world.gen.feature.RandomRandomFeatureConfig;
+import net.minecraft.world.gen.feature.SimpleRandomFeatureConfig;
 
 import java.util.function.Predicate;
 
@@ -53,21 +53,21 @@ public class DynamicMatcher implements Predicate<ConfiguredFeature<?, ?>> {
             return decorated((DecoratedFeatureConfig) feature.config);
         }
 
-        // note SingleRandomFeature & SingleRandomFeatureConfig names a mixed up
-        if (feature.config instanceof SingleRandomFeature) {
-            return single((SingleRandomFeature) feature.config);
+        // note SimpleRandomFeatureConfig & SimpleRandomFeatureConfigConfig names a mixed up
+        if (feature.config instanceof SimpleRandomFeatureConfig) {
+            return single((SimpleRandomFeatureConfig) feature.config);
         }
 
-        if (feature.config instanceof TwoFeatureChoiceConfig) {
-            return twoChoice((TwoFeatureChoiceConfig) feature.config);
+        if (feature.config instanceof RandomBooleanFeatureConfig) {
+            return twoChoice((RandomBooleanFeatureConfig) feature.config);
         }
 
-        if (feature.config instanceof MultipleRandomFeatureConfig) {
-            return multi((MultipleRandomFeatureConfig) feature.config);
+        if (feature.config instanceof RandomFeatureConfig) {
+            return multi((RandomFeatureConfig) feature.config);
         }
 
-        if (feature.config instanceof MultipleWithChanceRandomFeatureConfig) {
-            return multiChance((MultipleWithChanceRandomFeatureConfig) feature.config);
+        if (feature.config instanceof RandomRandomFeatureConfig) {
+            return multiChance((RandomRandomFeatureConfig) feature.config);
         }
 
         return predicate.test(feature);
@@ -77,7 +77,7 @@ public class DynamicMatcher implements Predicate<ConfiguredFeature<?, ?>> {
         return test(config.feature);
     }
 
-    private boolean single(SingleRandomFeature config) {
+    private boolean single(SimpleRandomFeatureConfig config) {
         for (ConfiguredFeature<?, ?> feature : config.features) {
             if (test(feature)) {
                 return true;
@@ -86,15 +86,15 @@ public class DynamicMatcher implements Predicate<ConfiguredFeature<?, ?>> {
         return false;
     }
 
-    private boolean twoChoice(TwoFeatureChoiceConfig config) {
-        if (test(config.field_227285_a_)) {
+    private boolean twoChoice(RandomBooleanFeatureConfig config) {
+        if (test(config.featureTrue)) {
             return true;
         }
-        return test(config.field_227286_b_);
+        return test(config.featureFalse);
     }
 
-    private boolean multi(MultipleRandomFeatureConfig config) {
-        for (ConfiguredRandomFeatureList<?> feature : config.features) {
+    private boolean multi(RandomFeatureConfig config) {
+        for (RandomFeatureEntry<?> feature : config.features) {
             if (test(feature.feature)) {
                 return true;
             }
@@ -102,7 +102,7 @@ public class DynamicMatcher implements Predicate<ConfiguredFeature<?, ?>> {
         return false;
     }
 
-    private boolean multiChance(MultipleWithChanceRandomFeatureConfig config) {
+    private boolean multiChance(RandomRandomFeatureConfig config) {
         for (ConfiguredFeature<?, ?> feature : config.features) {
             if (test(feature)) {
                 return true;
@@ -127,15 +127,15 @@ public class DynamicMatcher implements Predicate<ConfiguredFeature<?, ?>> {
         return DynamicMatcher.feature(type::isInstance);
     }
 
-    public static DynamicMatcher config(Predicate<IFeatureConfig> predicate) {
+    public static DynamicMatcher config(Predicate<FeatureConfig> predicate) {
         return DynamicMatcher.of(f -> predicate.test(f.config));
     }
 
-    public static DynamicMatcher config(IFeatureConfig config) {
+    public static DynamicMatcher config(FeatureConfig config) {
         return DynamicMatcher.of(f -> f.config == config);
     }
 
-    public static DynamicMatcher config(Class<? extends IFeatureConfig> type) {
+    public static DynamicMatcher config(Class<? extends FeatureConfig> type) {
         return DynamicMatcher.config(type::isInstance);
     }
 }

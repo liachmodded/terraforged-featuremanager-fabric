@@ -1,5 +1,5 @@
 /*
- *   
+ *
  * MIT License
  *
  * Copyright (c) 2020 TerraForged
@@ -33,10 +33,9 @@ import com.terraforged.feature.template.decorator.DecoratorFactory;
 import com.terraforged.feature.template.feature.MultiTemplateFeature;
 import com.terraforged.feature.template.feature.TemplateFeature;
 import com.terraforged.feature.template.type.FeatureTypes;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.gen.feature.Feature;
-import net.minecraftforge.event.RegistryEvent;
-import net.minecraftforge.fml.ModLoadingContext;
+import net.minecraft.resource.ResourceManager;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registry;
 import org.apache.logging.log4j.Marker;
 import org.apache.logging.log4j.MarkerManager;
 
@@ -48,34 +47,28 @@ public class TemplateManager {
 
     private static final Marker marker = MarkerManager.getMarker("TEMPLATES");
 
-    public static void register(RegistryEvent.Register<Feature<?>> event) {
-        String modid = ModLoadingContext.get().getActiveContainer().getModId();
-        register(modid, event);
-    }
-
-    public static void register(String modid, RegistryEvent.Register<Feature<?>> event) {
-        DataPack.getModDataPack(modid).ifPresent(dataPack -> {
-            List<TemplateConfig> configs = loadConfigs(dataPack);
-            for (TemplateConfig config : configs) {
-                FeatureManager.LOG.debug(marker, "Registering feature: {}", config.getRegistryName());
-                List<TemplateFeature> templates = loadTemplates(dataPack, config);
-                MultiTemplateFeature feature = new MultiTemplateFeature(config, templates);
-                DecoratorFactory factory = feature.getType().getFactory();
-                Optional<DecoratedFeature<?, ?>> decorated = factory.apply(feature, config.getDecorators());
-                if (decorated.isPresent()) {
-                    event.getRegistry().register(decorated.get());
-                    FeatureTypes.register(feature.getType(), decorated.get());
-                } else {
-                    event.getRegistry().register(feature);
-                    FeatureTypes.register(feature.getType(), feature);
-                }
+    public static void register() {
+        ResourceManager manager = DataHelper.getResourceManager();
+        List<TemplateConfig> configs = loadConfigs(manager);
+        for (TemplateConfig config : configs) {
+            FeatureManager.LOG.debug(marker, "Registering feature: {}", config.getRegistryName());
+            List<TemplateFeature> templates = loadTemplates(manager, config);
+            MultiTemplateFeature feature = new MultiTemplateFeature(config, templates);
+            DecoratorFactory factory = feature.getType().getFactory();
+            Optional<DecoratedFeature<?, ?>> decorated = factory.apply(feature, config.getDecorators());
+            if (decorated.isPresent()) {
+                Registry.register(Registry.FEATURE, feature.getName(), decorated.get());
+                FeatureTypes.register(feature.getType(), decorated.get());
+            } else {
+                Registry.register(Registry.FEATURE, feature.getName(), feature);
+                FeatureTypes.register(feature.getType(), feature);
             }
-        });
+        }
     }
 
-    private static List<TemplateConfig> loadConfigs(DataPack pack) {
+    private static List<TemplateConfig> loadConfigs(ResourceManager manager) {
         List<TemplateConfig> list = new ArrayList<>();
-        pack.iterateJson("templates", (location, element) -> {
+        DataPack.iterateJson(manager, "templates", (location, element) -> {
             Optional<TemplateConfig> config = TemplateConfig.parse(location, element);
             if (config.isPresent()) {
                 list.add(config.get());
@@ -87,11 +80,11 @@ public class TemplateManager {
         return list;
     }
 
-    private static List<TemplateFeature> loadTemplates(DataPack pack, TemplateConfig config) {
+    private static List<TemplateFeature> loadTemplates(ResourceManager manager, TemplateConfig config) {
         List<TemplateFeature> list = new ArrayList<>();
-        for (ResourceLocation path : config.getPaths()) {
+        for (Identifier path : config.getPaths()) {
             FeatureManager.LOG.debug(marker, " Loading templates for: {}", config.getRegistryName());
-            pack.iterateData(path.getPath(), DataHelper.NBT, (location, data) -> {
+            DataPack.iterateData(manager, path.getPath(), DataHelper.NBT, (location, data) -> {
                 Optional<TemplateFeature> template = TemplateFeature.load(data);
                 if (template.isPresent()) {
                     list.add(template.get());

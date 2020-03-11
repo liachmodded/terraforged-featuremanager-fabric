@@ -27,8 +27,8 @@ package com.terraforged.feature.template.decorator;
 
 import com.terraforged.feature.util.WorldDelegate;
 import net.minecraft.block.BlockState;
+import net.minecraft.util.math.BlockBox;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MutableBoundingBox;
 import net.minecraft.world.IWorld;
 
 import java.util.Collections;
@@ -67,11 +67,11 @@ public abstract class BoundsRecorder extends WorldDelegate {
         return allPositions;
     }
 
-    public MutableBoundingBox getBounds() {
+    public BlockBox getBounds() {
         if (min == null || max == null) {
-            return MutableBoundingBox.getNewBoundingBox();
+            return BlockBox.empty();
         }
-        return MutableBoundingBox.createProper(min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ());
+        return BlockBox.create(min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ());
     }
 
     private void recordPos(BlockPos pos) {
@@ -88,7 +88,7 @@ public abstract class BoundsRecorder extends WorldDelegate {
             x = Math.min(x, min.getX());
             y = Math.min(y, min.getY());
             z = Math.min(z, min.getZ());
-            min.setPos(x, y, z);
+            min.set(x, y, z);
         }
     }
 
@@ -99,7 +99,7 @@ public abstract class BoundsRecorder extends WorldDelegate {
             x = Math.max(x, max.getX());
             y = Math.max(y, max.getY());
             z = Math.max(z, max.getZ());
-            max.setPos(x, y, z);
+            max.set(x, y, z);
         }
     }
 }

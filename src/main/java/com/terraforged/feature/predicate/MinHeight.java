@@ -25,9 +25,9 @@
 
 package com.terraforged.feature.predicate;
 
+import net.minecraft.world.Heightmap;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.chunk.IChunk;
-import net.minecraft.world.gen.Heightmap;
+import net.minecraft.world.chunk.Chunk;
 
 public class MinHeight implements FeaturePredicate {
 
@@ -42,7 +42,7 @@ public class MinHeight implements FeaturePredicate {
     }
 
     @Override
-    public boolean test(IChunk chunk, Biome biome) {
-        return chunk.getTopBlockY(Heightmap.Type.WORLD_SURFACE, 8, 8) > height;
+    public boolean test(Chunk chunk, Biome biome) {
+        return chunk.sampleHeightmap(Heightmap.Type.WORLD_SURFACE, 8, 8) > height;
     }
 }

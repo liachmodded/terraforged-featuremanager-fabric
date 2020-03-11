@@ -27,17 +27,17 @@ package com.terraforged.feature.example;
 
 import com.terraforged.feature.FeatureDecorator;
 import com.terraforged.feature.FeatureManager;
+import net.minecraft.world.ChunkRegion;
 import net.minecraft.world.IWorld;
-import net.minecraft.world.biome.provider.BiomeProvider;
-import net.minecraft.world.gen.OverworldChunkGenerator;
-import net.minecraft.world.gen.OverworldGenSettings;
-import net.minecraft.world.gen.WorldGenRegion;
+import net.minecraft.world.biome.source.BiomeSource;
+import net.minecraft.world.gen.chunk.OverworldChunkGenerator;
+import net.minecraft.world.gen.chunk.OverworldChunkGeneratorConfig;
 
 public class ExampleChunkGenerator extends OverworldChunkGenerator implements FeatureDecorator {
 
     private final FeatureManager featureManager;
 
-    public ExampleChunkGenerator(IWorld world, BiomeProvider biomeProvider, OverworldGenSettings settings) {
+    public ExampleChunkGenerator(IWorld world, BiomeSource biomeProvider, OverworldChunkGeneratorConfig settings) {
         super(world, biomeProvider, settings);
         this.featureManager = FeatureManager.create(world.getWorld());
     }
@@ -48,7 +48,7 @@ public class ExampleChunkGenerator extends OverworldChunkGenerator implements Fe
     }
 
     @Override
-    public void decorate(WorldGenRegion region) {
+    public void populateEntities(ChunkRegion region) {
         decorate(this, region);
     }
 }

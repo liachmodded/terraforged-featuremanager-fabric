@@ -1,5 +1,5 @@
 /*
- *   
+ *
  * MIT License
  *
  * Copyright (c) 2020 TerraForged
@@ -26,13 +26,13 @@
 package com.terraforged.feature.template.placement;
 
 import net.minecraft.world.gen.feature.AbstractTreeFeature;
-import net.minecraft.world.gen.feature.BaseTreeFeatureConfig;
+import net.minecraft.world.gen.feature.TreeFeatureConfig;
 
-public abstract class TreePlacement extends AbstractTreeFeature<BaseTreeFeatureConfig> {
+public abstract class TreePlacement extends AbstractTreeFeature<TreeFeatureConfig> {
 
-    public static final Placement PLACEMENT = (world, pos) -> isDirtOrGrassBlock(world, pos.down());
+    public static final Placement PLACEMENT = (world, pos) -> isNaturalDirtOrGrass(world, pos.down());
 
     private TreePlacement() {
-        super(BaseTreeFeatureConfig::deserialize);
+        super(TreeFeatureConfig::deserialize);
     }
 }

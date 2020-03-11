@@ -25,7 +25,7 @@
 
 package com.terraforged.feature.biome;
 
-import net.minecraft.world.gen.GenerationStage;
+import net.minecraft.world.gen.GenerationStep;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,14 +38,14 @@ public class BiomeFeatures {
     public static final BiomeFeatures NONE = BiomeFeatures.builder().build();
     private static final List<BiomeFeature> empty = Collections.emptyList();
 
-    private final Map<GenerationStage.Decoration, List<BiomeFeature>> features;
+    private final Map<GenerationStep.Feature, List<BiomeFeature>> features;
 
     public BiomeFeatures(Builder builder) {
         this.features = builder.features;
         builder.features = Collections.emptyMap();
     }
 
-    public List<BiomeFeature> getStage(GenerationStage.Decoration stage) {
+    public List<BiomeFeature> getStage(GenerationStep.Feature stage) {
         return features.getOrDefault(stage, empty);
     }
 
@@ -55,11 +55,11 @@ public class BiomeFeatures {
 
     public static class Builder {
 
-        private Map<GenerationStage.Decoration, List<BiomeFeature>> features = Collections.emptyMap();
+        private Map<GenerationStep.Feature, List<BiomeFeature>> features = Collections.emptyMap();
 
-        public Builder add(GenerationStage.Decoration stage, BiomeFeature feature) {
+        public Builder add(GenerationStep.Feature stage, BiomeFeature feature) {
             if (features.isEmpty()) {
-                features = new EnumMap<>(GenerationStage.Decoration.class);
+                features = new EnumMap<>(GenerationStep.Feature.class);
             }
             features.computeIfAbsent(stage, s -> new ArrayList<>()).add(feature);
             return this;

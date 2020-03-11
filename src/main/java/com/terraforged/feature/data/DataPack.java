@@ -27,11 +27,11 @@ package com.terraforged.feature.data;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import net.minecraft.resources.ResourcePackType;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.loading.moddiscovery.ModFileInfo;
-import net.minecraftforge.fml.packs.ModFileResourcePack;
+import net.minecraft.resource.Resource;
+import net.minecraft.resource.ResourceManager;
+import net.minecraft.resource.ResourcePack;
+import net.minecraft.resource.ResourceType;
+import net.minecraft.util.Identifier;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -42,31 +42,16 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-public class DataPack {
+public final class DataPack {
 
-    private final String namespace;
-    private final ResourcePackType type;
-    private final ModFileResourcePack pack;
-
-    public DataPack(String namespace, ModFileResourcePack pack) {
-        this.pack = pack;
-        this.namespace = namespace;
-        this.type = ResourcePackType.SERVER_DATA;
+    private DataPack() {
     }
 
-    public Collection<ResourceLocation> getAllResources(String path, Predicate<String> filenameMatcher) {
-        return pack.getAllResourceLocations(type, namespace, path, 8, filenameMatcher);
-    }
-
-    public InputStream getResource(ResourceLocation location) throws IOException {
-        return pack.getResourceStream(type, location);
-    }
-
-    public void iterateData(String path, Predicate<String> matcher, ResourceVisitor<InputStream> consumer) {
+    public static void iterateData(ResourceManager manager, String path, Predicate<String> matcher, ResourceVisitor<InputStream> consumer) {
         try {
-            for (ResourceLocation location : getAllResources(path, matcher)) {
-                try (InputStream data = getResource(location)) {
-                    consumer.accept(location, data);
+            for (Identifier location : manager.findResources(path, matcher)) {
+                try (Resource data = manager.getResource(location)) {
+                    consumer.accept(location, data.getInputStream());
                 }
             }
         } catch (IOException e) {
@@ -74,19 +59,13 @@ public class DataPack {
         }
     }
 
-    public void iterateJson(String path, ResourceVisitor<JsonElement> consumer) {
+    public static void iterateJson(ResourceManager manager, String path, ResourceVisitor<JsonElement> consumer) {
         JsonParser parser = new JsonParser();
-        iterateData(path, DataHelper.JSON, (location, data) -> {
-            Reader reader = new BufferedReader(new InputStreamReader(data));
-            JsonElement element = parser.parse(reader);
-            consumer.accept(location, element);
-        });
-    }
-
-    public static Optional<DataPack> getModDataPack(String modid) {
-        return ModList.get().getModContainerById(modid).map(container -> {
-            ModFileInfo fileInfo = ModList.get().getModFileById(modid);
-            return new DataPack(container.getNamespace(), new ModFileResourcePack(fileInfo.getFile()));
+        iterateData(manager, path, DataHelper.JSON, (location, data) -> {
+            try (Reader reader = new BufferedReader(new InputStreamReader(data))) {
+                JsonElement element = parser.parse(reader);
+                consumer.accept(location, element);
+            }
         });
     }
 }
