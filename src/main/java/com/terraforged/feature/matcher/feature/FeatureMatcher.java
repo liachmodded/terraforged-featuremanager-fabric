@@ -28,7 +28,8 @@ package com.terraforged.feature.matcher.feature;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonPrimitive;
-import net.minecraftforge.registries.ForgeRegistryEntry;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.world.gen.feature.Feature;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -143,8 +144,9 @@ public class FeatureMatcher implements Predicate<JsonElement> {
         if (arg instanceof Boolean) {
             return new JsonPrimitive((Boolean) arg);
         }
-        if (arg instanceof ForgeRegistryEntry) {
-            return new JsonPrimitive(((ForgeRegistryEntry<?>) arg).getRegistryName() + "");
+        
+        if (arg instanceof Feature) {
+            return new JsonPrimitive(String.valueOf(Registry.FEATURE.getId((Feature<?>) arg)));
         }
         return JsonNull.INSTANCE;
     }

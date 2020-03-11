@@ -26,20 +26,20 @@
 package com.terraforged.feature.template.feature;
 
 import com.terraforged.feature.util.BlockReader;
+import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.CompressedStreamTools;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.nbt.NBTUtil;
-import net.minecraft.util.Mirror;
-import net.minecraft.util.Rotation;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtHelper;
+import net.minecraft.nbt.NbtIo;
+import net.minecraft.structure.Structure;
+import net.minecraft.util.BlockMirror;
+import net.minecraft.util.BlockRotation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IWorld;
-import net.minecraft.world.gen.ChunkGenerator;
+import net.minecraft.world.gen.chunk.ChunkGenerator;
 import net.minecraft.world.gen.feature.Feature;
-import net.minecraft.world.gen.feature.template.Template;
-import net.minecraftforge.common.util.Constants;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -60,9 +60,9 @@ public class TemplateFeature extends Feature<TemplateFeatureConfig> {
     }
 
     @Override
-    public boolean place(IWorld world, ChunkGenerator<?> generator, Random rand, BlockPos origin, TemplateFeatureConfig config) {
-        Mirror mirror = getMirror(rand);
-        Rotation rotation = getRotation(rand);
+    public boolean generate(IWorld world, ChunkGenerator<?> generator, Random rand, BlockPos origin, TemplateFeatureConfig config) {
+        BlockMirror mirror = getMirror(rand);
+        BlockRotation rotation = getRotation(rand);
 
         boolean placed = false;
         for (BlockInfo block : blocks) {
@@ -71,14 +71,14 @@ public class TemplateFeature extends Feature<TemplateFeatureConfig> {
                 continue;
             }
 
-            BlockPos pos = Template.getTransformedPos(block.pos, mirror, rotation, BlockPos.ZERO).add(origin);
-            if (block.pos.getY() <= 0 && block.state.isNormalCube(reader.setState(block.state), BlockPos.ZERO)) {
+            BlockPos pos = Structure.method_15168(block.pos, mirror, rotation, BlockPos.ORIGIN).add(origin);
+            if (block.pos.getY() <= 0 && block.state.isSimpleFullBlock(reader.setState(block.state), BlockPos.ORIGIN)) {
                 placeBase(world, pos, state, config.baseDepth);
             }
 
             if (!config.replaceSolid) {
                 BlockState current = world.getBlockState(pos);
-                if (current.isSolid()) {
+                if (current.isOpaque()) {
                     continue;
                 }
             }
@@ -104,12 +104,12 @@ public class TemplateFeature extends Feature<TemplateFeatureConfig> {
         return state.getBlock() == Blocks.AIR;
     }
 
-    private static Mirror getMirror(Random random) {
-        return Mirror.values()[random.nextInt(Mirror.values().length)];
+    private static BlockMirror getMirror(Random random) {
+        return BlockMirror.values()[random.nextInt(BlockMirror.values().length)];
     }
 
-    private static Rotation getRotation(Random random) {
-        return Rotation.values()[random.nextInt(Rotation.values().length)];
+    private static BlockRotation getRotation(Random random) {
+        return BlockRotation.values()[random.nextInt(BlockRotation.values().length)];
     }
 
     public static class BlockInfo {
@@ -138,12 +138,12 @@ public class TemplateFeature extends Feature<TemplateFeatureConfig> {
 
     public static Optional<TemplateFeature> load(InputStream data) {
         try {
-            CompoundNBT root = CompressedStreamTools.readCompressed(data);
+            CompoundTag root = NbtIo.readCompressed(data);
             if (!root.contains("palette") || !root.contains("blocks")) {
                 return Optional.empty();
             }
-            BlockState[] palette = readPalette(root.getList("palette", Constants.NBT.TAG_COMPOUND));
-            BlockInfo[] blockInfos = readBlocks(root.getList("blocks", Constants.NBT.TAG_COMPOUND), palette);
+            BlockState[] palette = readPalette(root.getList("palette", NbtType.COMPOUND));
+            BlockInfo[] blockInfos = readBlocks(root.getList("blocks", NbtType.COMPOUND), palette);
             List<BlockInfo> blocks = relativize(blockInfos);
             return Optional.of(new TemplateFeature(blocks));
         } catch (IOException e) {
@@ -151,11 +151,11 @@ public class TemplateFeature extends Feature<TemplateFeatureConfig> {
         }
     }
 
-    private static BlockState[] readPalette(ListNBT list) {
+    private static BlockState[] readPalette(ListTag list) {
         BlockState[] palette = new BlockState[list.size()];
         for (int i = 0; i < list.size(); i++) {
             try {
-                palette[i] = NBTUtil.readBlockState(list.getCompound(i));
+                palette[i] = NbtHelper.toBlockState(list.getCompound(i));
             } catch (Throwable t) {
                 palette[i] = Blocks.AIR.getDefaultState();
             }
@@ -163,12 +163,12 @@ public class TemplateFeature extends Feature<TemplateFeatureConfig> {
         return palette;
     }
 
-    private static BlockInfo[] readBlocks(ListNBT list, BlockState[] palette) {
+    private static BlockInfo[] readBlocks(ListTag list, BlockState[] palette) {
         BlockInfo[] blocks = new BlockInfo[list.size()];
         for (int i = 0; i < list.size(); i++) {
-            CompoundNBT compound = list.getCompound(i);
+            CompoundTag compound = list.getCompound(i);
             BlockState state = palette[compound.getInt("state")];
-            BlockPos pos = readPos(compound.getList("pos", Constants.NBT.TAG_INT));
+            BlockPos pos = readPos(compound.getList("pos", NbtType.INT));
             blocks[i] = new BlockInfo(pos, state);
         }
         return blocks;
@@ -197,7 +197,7 @@ public class TemplateFeature extends Feature<TemplateFeatureConfig> {
         int closestDist2 = Integer.MAX_VALUE;
 
         for (BlockInfo block : blocks) {
-            if (!block.state.isSolid()) {
+            if (!block.state.isOpaque()) {
                 continue;
             }
 
@@ -240,7 +240,7 @@ public class TemplateFeature extends Feature<TemplateFeatureConfig> {
         return dx * dx + dz * dz;
     }
 
-    private static BlockPos readPos(ListNBT list) {
+    private static BlockPos readPos(ListTag list) {
         int x = list.getInt(0);
         int y = list.getInt(1);
         int z = list.getInt(2);
