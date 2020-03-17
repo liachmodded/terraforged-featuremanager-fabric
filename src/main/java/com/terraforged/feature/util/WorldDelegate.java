@@ -38,6 +38,7 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
+import net.minecraft.util.math.Direction;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.Heightmap;
 import net.minecraft.world.IWorld;
@@ -294,5 +295,10 @@ public class WorldDelegate implements IWorld {
     @Override
     public BlockView getExistingChunk(int chunkX, int chunkZ) {
         return delegate.getExistingChunk(chunkX, chunkZ);
+    }
+
+    @Override
+    public float method_24852(Direction direction, boolean bl) {
+        return delegate.method_24852(direction, bl);
     }
 }

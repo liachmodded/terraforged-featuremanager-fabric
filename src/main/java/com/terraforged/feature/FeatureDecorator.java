@@ -55,13 +55,13 @@ public interface FeatureDecorator {
 
     default void decorate(ChunkGenerator<?> generator, IWorld region, Chunk chunk, Biome biome, BlockPos pos) {
         ChunkRandom random = new ChunkRandom();
-        long decorationSeed = random.setSeed(region.getSeed(), pos.getX(), pos.getZ());
+        long populationSeed = random.setPopulationSeed(region.getSeed(), pos.getX(), pos.getZ());
 
         BiomeFeatures features = getFeatureManager().getFeatures(biome);
         for (GenerationStep.Feature stage : GenerationStep.Feature.values()) {
             int featureOrdinal = 0;
             for (BiomeFeature feature : features.getStage(stage)) {
-                random.setFeatureSeed(decorationSeed, featureOrdinal++, stage.ordinal());
+                random.setDecoratorSeed(populationSeed, featureOrdinal++, stage.ordinal());
 
                 if (feature.getPredicate().test(chunk, biome)) {
                     feature.getFeature().generate(region, generator, random, pos);

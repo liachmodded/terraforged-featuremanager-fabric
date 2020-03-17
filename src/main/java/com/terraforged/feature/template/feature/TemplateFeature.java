@@ -71,7 +71,7 @@ public class TemplateFeature extends Feature<TemplateFeatureConfig> {
                 continue;
             }
 
-            BlockPos pos = Structure.method_15168(block.pos, mirror, rotation, BlockPos.ORIGIN).add(origin);
+            BlockPos pos = Structure.transformAround(block.pos, mirror, rotation, BlockPos.ORIGIN).add(origin);
             if (block.pos.getY() <= 0 && block.state.isSimpleFullBlock(reader.setState(block.state), BlockPos.ORIGIN)) {
                 placeBase(world, pos, state, config.baseDepth);
             }
