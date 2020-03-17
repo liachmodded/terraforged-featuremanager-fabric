@@ -1,16 +1,16 @@
 package com.terraforged.feature.util;
 
+import net.minecraft.world.gen.decorator.Decorator;
+import net.minecraft.world.gen.decorator.DecoratorConfig;
 import net.minecraft.world.gen.feature.ConfiguredFeature;
-import net.minecraft.world.gen.feature.ConfiguredRandomFeatureList;
 import net.minecraft.world.gen.feature.DecoratedFeatureConfig;
 import net.minecraft.world.gen.feature.Feature;
-import net.minecraft.world.gen.feature.IFeatureConfig;
-import net.minecraft.world.gen.feature.MultipleRandomFeatureConfig;
-import net.minecraft.world.gen.feature.MultipleWithChanceRandomFeatureConfig;
-import net.minecraft.world.gen.feature.SingleRandomFeature;
-import net.minecraft.world.gen.feature.TwoFeatureChoiceConfig;
-import net.minecraft.world.gen.placement.IPlacementConfig;
-import net.minecraft.world.gen.placement.Placement;
+import net.minecraft.world.gen.feature.FeatureConfig;
+import net.minecraft.world.gen.feature.RandomBooleanFeatureConfig;
+import net.minecraft.world.gen.feature.RandomFeatureConfig;
+import net.minecraft.world.gen.feature.RandomFeatureEntry;
+import net.minecraft.world.gen.feature.RandomRandomFeatureConfig;
+import net.minecraft.world.gen.feature.SimpleRandomFeatureConfig;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
@@ -20,9 +20,9 @@ import java.util.function.Predicate;
 
 public interface FeatureVisitor {
 
-    void visit(Feature<?> feature, IFeatureConfig config);
+    void visit(Feature<?> feature, FeatureConfig config);
 
-    void visit(Placement<?> decorator, IPlacementConfig config);
+    void visit(Decorator<?> decorator, DecoratorConfig config);
 
     default void visitConfigured(ConfiguredFeature<?, ?> feature) {
         if (feature.config instanceof DecoratedFeatureConfig) {
@@ -31,23 +31,23 @@ public interface FeatureVisitor {
         }
 
         // note SingleRandomFeature & SingleRandomFeatureConfig names a mixed up
-        if (feature.config instanceof SingleRandomFeature) {
-            visitSingle((SingleRandomFeature) feature.config);
+        if (feature.config instanceof SimpleRandomFeatureConfig) {
+            visitSingle((SimpleRandomFeatureConfig) feature.config);
             return;
         }
 
-        if (feature.config instanceof TwoFeatureChoiceConfig) {
-            visitTwoChoice((TwoFeatureChoiceConfig) feature.config);
+        if (feature.config instanceof RandomBooleanFeatureConfig) {
+            visitTwoChoice((RandomBooleanFeatureConfig) feature.config);
             return;
         }
 
-        if (feature.config instanceof MultipleRandomFeatureConfig) {
-            visitMulti((MultipleRandomFeatureConfig) feature.config);
+        if (feature.config instanceof RandomFeatureConfig) {
+            visitMulti((RandomFeatureConfig) feature.config);
             return;
         }
 
-        if (feature.config instanceof MultipleWithChanceRandomFeatureConfig) {
-            visitMultiChance((MultipleWithChanceRandomFeatureConfig) feature.config);
+        if (feature.config instanceof RandomRandomFeatureConfig) {
+            visitMultiChance((RandomRandomFeatureConfig) feature.config);
             return;
         }
 
@@ -60,24 +60,24 @@ public interface FeatureVisitor {
         visit(config.decorator.decorator, config.decorator.config);
     }
 
-    default void visitSingle(SingleRandomFeature config) {
+    default void visitSingle(SimpleRandomFeatureConfig config) {
         for (ConfiguredFeature<?, ?> feature : config.features) {
             visitConfigured(feature);
         }
     }
 
-    default void visitTwoChoice(TwoFeatureChoiceConfig config) {
-        visitConfigured(config.field_227285_a_);
-        visitConfigured(config.field_227286_b_);
+    default void visitTwoChoice(RandomBooleanFeatureConfig config) {
+        visitConfigured(config.featureTrue);
+        visitConfigured(config.featureFalse);
     }
 
-    default void visitMulti(MultipleRandomFeatureConfig config) {
-        for (ConfiguredRandomFeatureList<?> feature : config.features) {
+    default void visitMulti(RandomFeatureConfig config) {
+        for (RandomFeatureEntry<?> feature : config.features) {
             visitConfigured(feature.feature);
         }
     }
 
-    default void visitMultiChance(MultipleWithChanceRandomFeatureConfig config) {
+    default void visitMultiChance(RandomRandomFeatureConfig config) {
         for (ConfiguredFeature<?, ?> feature : config.features) {
             visitConfigured(feature);
         }
@@ -85,14 +85,14 @@ public interface FeatureVisitor {
 
     interface FeatureV extends FeatureVisitor {
 
-        default void visit(Placement<?> decorator, IPlacementConfig config) {
+        default void visit(Decorator<?> decorator, DecoratorConfig config) {
 
         }
     }
 
     interface DecoratorV extends FeatureVisitor {
 
-        default void visit(Feature<?> feature, IFeatureConfig config) {
+        default void visit(Feature<?> feature, FeatureConfig config) {
 
         }
     }
@@ -113,7 +113,7 @@ public interface FeatureVisitor {
         return create((f, c) -> consumer.accept(f), (d, c) -> {});
     }
 
-    static FeatureVisitor featureConfig(Consumer<IFeatureConfig> consumer) {
+    static FeatureVisitor featureConfig(Consumer<FeatureConfig> consumer) {
         return create((f, c) -> consumer.accept(c), (d, c) -> {});
     }
 
@@ -121,31 +121,31 @@ public interface FeatureVisitor {
         return feature(consumerOf(type::isInstance, type::cast, consumer));
     }
 
-    static <T extends IFeatureConfig> FeatureVisitor featureConfig(Class<T> type, Consumer<T> consumer) {
+    static <T extends FeatureConfig> FeatureVisitor featureConfig(Class<T> type, Consumer<T> consumer) {
         return featureConfig(consumerOf(type::isInstance, type::cast, consumer));
     }
 
-    static FeatureVisitor feature(BiConsumer<Feature<?>, IFeatureConfig> consumer) {
+    static FeatureVisitor feature(BiConsumer<Feature<?>, FeatureConfig> consumer) {
         return create(consumer, (d, c) -> {});
     }
 
-    static FeatureVisitor decorator(Consumer<Placement<?>> consumer) {
+    static FeatureVisitor decorator(Consumer<Decorator<?>> consumer) {
         return create((f, c) -> {}, (d, c) -> consumer.accept(d));
     }
 
-    static FeatureVisitor decoratorConfig(Consumer<IPlacementConfig> consumer) {
+    static FeatureVisitor decoratorConfig(Consumer<DecoratorConfig> consumer) {
         return create((f, c) -> {}, (d, c) -> consumer.accept(c));
     }
 
-    static <T extends Placement<?>> FeatureVisitor decorator(Class<T> type, Consumer<T> consumer) {
+    static <T extends Decorator<?>> FeatureVisitor decorator(Class<T> type, Consumer<T> consumer) {
         return decorator(consumerOf(type::isInstance, type::cast, consumer));
     }
 
-    static <T extends IPlacementConfig> FeatureVisitor decoratorConfig(Class<T> type, Consumer<T> consumer) {
+    static <T extends DecoratorConfig> FeatureVisitor decoratorConfig(Class<T> type, Consumer<T> consumer) {
         return decoratorConfig(consumerOf(type::isInstance, type::cast, consumer));
     }
 
-    static FeatureVisitor decorator(BiConsumer<Placement<?>, IPlacementConfig> consumer) {
+    static FeatureVisitor decorator(BiConsumer<Decorator<?>, DecoratorConfig> consumer) {
         return create((f, c) -> {}, consumer);
     }
 
@@ -158,15 +158,15 @@ public interface FeatureVisitor {
         };
     }
 
-    static FeatureVisitor create(BiConsumer<Feature<?>, IFeatureConfig> features, BiConsumer<Placement<?>, IPlacementConfig> decorators) {
+    static FeatureVisitor create(BiConsumer<Feature<?>, FeatureConfig> features, BiConsumer<Decorator<?>, DecoratorConfig> decorators) {
         return new FeatureVisitor() {
             @Override
-            public void visit(Feature<?> feature, IFeatureConfig config) {
+            public void visit(Feature<?> feature, FeatureConfig config) {
                 features.accept(feature, config);
             }
 
             @Override
-            public void visit(Placement<?> decorator, IPlacementConfig config) {
+            public void visit(Decorator<?> decorator, DecoratorConfig config) {
                 decorators.accept(decorator, config);
             }
         };

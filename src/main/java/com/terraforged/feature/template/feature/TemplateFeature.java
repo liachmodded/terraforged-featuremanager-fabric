@@ -93,7 +93,7 @@ public class TemplateFeature extends Feature<TemplateFeatureConfig> {
     private void placeBase(IWorld world, BlockPos pos, BlockState state, int depth) {
         for (int dy = 0; dy < depth; dy++) {
             pos = pos.down();
-            if (world.getBlockState(pos).isSolid()) {
+            if (world.getBlockState(pos).isOpaque()) {
                 return;
             }
             world.setBlockState(pos, state, 2);

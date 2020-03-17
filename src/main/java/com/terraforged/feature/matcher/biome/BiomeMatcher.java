@@ -25,8 +25,8 @@
 
 package com.terraforged.feature.matcher.biome;
 
+import net.minecraft.util.registry.Registry;
 import net.minecraft.world.biome.Biome;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -63,7 +63,7 @@ public class BiomeMatcher implements Predicate<Biome>, Comparable<BiomeMatcher> 
 
     public static BiomeMatcher of(Biome.Category... types) {
         Set<Biome> biomes = new HashSet<>();
-        for (Biome biome : ForgeRegistries.BIOMES) {
+        for (Biome biome : Registry.BIOME) {
             for (Biome.Category category : types) {
                 if (biome.getCategory() == category) {
                     biomes.add(biome);
